@@ -8,3 +8,4 @@ langchain
 langchain-community
 python-dotenv
 gunicorn
+flask
