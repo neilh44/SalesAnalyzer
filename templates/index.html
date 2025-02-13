@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sales Team Daily Report</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.6.2/axios.min.js"></script>
+</head>
+<body class="bg-gray-100">
+    <div class="container mx-auto px-4 py-8">
+        <!-- Header -->
+        <header class="mb-8">
+            <h1 class="text-3xl font-bold text-gray-800">Sales Team Daily Report</h1>
+            <p class="text-gray-600" id="currentDate"></p>
+        </header>
+
+        <!-- Main Tabs -->
+        <div class="mb-6">
+            <div class="border-b border-gray-200">
+                <nav class="-mb-px flex space-x-8">
+                    <a href="#" onclick="showTab('daily-plan')" class="tab-btn px-4 py-2 text-sm font-medium text-blue-600 border-b-2 border-blue-500">Daily Plan</a>
+                    <a href="#" onclick="showTab('client-visit')" class="tab-btn px-4 py-2 text-sm font-medium text-gray-500">Client Visit</a>
+                    <a href="#" onclick="showTab('daily-report')" class="tab-btn px-4 py-2 text-sm font-medium text-gray-500">Daily Report</a>
+                    <a href="#" onclick="showTab('insights')" class="tab-btn px-4 py-2 text-sm font-medium text-gray-500">Insights</a>
+                    <a href="#" onclick="showTab('chat')" class="tab-btn px-4 py-2 text-sm font-medium text-gray-500">Chat</a>
+                </nav>
+            </div>
+        </div>
+
+        <!-- Tab Contents -->
+        <div id="tab-contents">
+            <!-- Daily Plan Tab -->
+            <div id="daily-plan" class="tab-content">
+                <div class="bg-white shadow rounded-lg p-6">
+                    <h2 class="text-xl font-semibold mb-4">Today's Visit Plan</h2>
+                    <div id="visitPlan" class="space-y-4">
+                        <!-- Visit plan will be populated here -->
+                    </div>
+                    <button onclick="generatePlan()" class="mt-4 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+                        Generate Plan
+                    </button>
+                </div>
+            </div>
+
+            <!-- Client Visit Tab -->
+            <div id="client-visit" class="tab-content hidden">
+                <div class="bg-white shadow rounded-lg p-6">
+                    <h2 class="text-xl font-semibold mb-4">Client Visit Details</h2>
+                    <form id="visitForm" class="space-y-4">
+                        <div>
+                            <label for="clientName" class="block text-sm font-medium text-gray-700">Client Name</label>
+                            <input type="text" id="clientName" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border">
+                        </div>
+                        <div>
+                            <label for="location" class="block text-sm font-medium text-gray-700">Location</label>
+                            <input type="text" id="location" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border">
+                        </div>
+                        <div>
+                            <label for="productsDiscussed" class="block text-sm font-medium text-gray-700">Products Discussed</label>
+                            <input type="text" id="productsDiscussed" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border">
+                        </div>
+                        <div>
+                            <label for="meetingOutcome" class="block text-sm font-medium text-gray-700">Meeting Outcome</label>
+                            <textarea id="meetingOutcome" rows="4" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border"></textarea>
+                        </div>
+                        <div>
+                            <label for="orderDetails" class="block text-sm font-medium text-gray-700">Order Details (Optional)</label>
+                            <textarea id="orderDetails" rows="4" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border"></textarea>
+                        </div>
+                        <div>
+                            <label for="nextSteps" class="block text-sm font-medium text-gray-700">Next Steps</label>
+                            <input type="text" id="nextSteps" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border">
+                        </div>
+                        <div>
+                            <label for="marketIntel" class="block text-sm font-medium text-gray-700">Market Intelligence (Optional)</label>
+                            <textarea id="marketIntel" rows="4" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border"></textarea>
+                        </div>
+                        <div>
+                            <label for="remarks" class="block text-sm font-medium text-gray-700">Additional Remarks (Optional)</label>
+                            <textarea id="remarks" rows="4" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border"></textarea>
+                        </div>
+                        <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+                            Save Visit Details
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Daily Report Tab -->
+            <div id="daily-report" class="tab-content hidden">
+                <div class="bg-white shadow rounded-lg p-6">
+                    <h2 class="text-xl font-semibold mb-4">Daily Report Summary</h2>
+                    <div id="reportSummary" class="space-y-4">
+                        <div class="border-l-4 border-blue-500 pl-4 py-2">
+                            <h3 class="font-semibold">Today's Activities</h3>
+                            <div id="todayActivities" class="mt-2">
+                                <!-- Activities will be populated here -->
+                            </div>
+                        </div>
+                        <div class="border-l-4 border-green-500 pl-4 py-2">
+                            <h3 class="font-semibold">Achievements</h3>
+                            <div id="achievements" class="mt-2">
+                                <!-- Achievements will be populated here -->
+                            </div>
+                        </div>
+                        <div class="border-l-4 border-yellow-500 pl-4 py-2">
+                            <h3 class="font-semibold">Pending Follow-ups</h3>
+                            <div id="pendingFollowups" class="mt-2">
+                                <!-- Follow-ups will be populated here -->
+                            </div>
+                        </div>
+                    </div>
+                    <button onclick="generateReport()" class="mt-4 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+                        Generate Report
+                    </button>
+                </div>
+            </div>
+
+            <!-- Insights Tab -->
+            <div id="insights" class="tab-content hidden">
+                <div class="bg-white shadow rounded-lg p-6">
+                    <h2 class="text-xl font-semibold mb-4">Performance Insights</h2>
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700">Date Range</label>
+                        <div class="flex space-x-4 mt-2">
+                            <input type="date" id="startDate" class="rounded-md border-gray-300 shadow-sm p-2 border">
+                            <input type="date" id="endDate" class="rounded-md border-gray-300 shadow-sm p-2 border">
+                        </div>
+                    </div>
+                    <div id="insightsContent" class="space-y-4">
+                        <!-- Insights will be populated here -->
+                    </div>
+                    <button onclick="generateInsights()" class="mt-4 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+                        Generate Insights
+                    </button>
+                </div>
+            </div>
+
+            <!-- Chat Tab -->
+            <div id="chat" class="tab-content hidden">
+                <div class="bg-white shadow rounded-lg p-6 flex flex-col h-[600px]">
+                    <h2 class="text-xl font-semibold mb-4">Sales Data Chat</h2>
+                    
+                    <!-- Chat Messages Container -->
+                    <div id="chatMessages" class="flex-1 overflow-y-auto mb-4 space-y-4 p-4 border rounded-lg">
+                        <div class="flex flex-col space-y-2">
+                            <div class="bg-gray-100 p-3 rounded-lg max-w-[80%] self-start">
+                                <p class="text-gray-800">Hello! How can I help you with your sales data today? You can ask me about:</p>
+                                <ul class="list-disc ml-4 mt-2">
+                                    <li>Recent client visits</li>
+                                    <li>Sales performance metrics</li>
+                                    <li>Customer feedback and insights</li>
+                                    <li>Market intelligence</li>
+                                    <li>Pending tasks and follow-ups</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Chat Input Form -->
+                    <form id="chatForm" class="flex space-x-2">
+                        <input 
+                            type="text" 
+                            id="chatInput" 
+                            class="flex-1 rounded-md border-gray-300 shadow-sm p-2 border"
+                            placeholder="Ask about sales data, visits, or performance..."
+                            required
+                        >
+                        <button 
+                            type="submit" 
+                            class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+                        >
+                            Send
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Set current date
+        document.getElementById('currentDate').textContent = new Date().toLocaleDateString();
+
+        // Tab switching
+        function showTab(tabId) {
+            // Prevent default link behavior
+            event.preventDefault();
+            
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.add('hidden');
+            });
+            
+            // Show selected tab
+            document.getElementById(tabId).classList.remove('hidden');
+            
+            // Update tab styles
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('text-blue-600', 'border-blue-500');
+                btn.classList.add('text-gray-500');
+                btn.classList.remove('border-b-2');
+            });
+            
+            // Style active tab
+            event.target.classList.add('text-blue-600', 'border-blue-500', 'border-b-2');
+            event.target.classList.remove('text-gray-500');
+        }
+
+        // Generate visit plan
+        async function generatePlan() {
+            try {
+                const today = new Date().toISOString().split('T')[0];
+                const response = await axios.get(`/api/schedule/SP001?date=${today}`);
+                
+                if (response.data.status === 'success' && response.data.schedule) {
+                    const visitPlanHtml = `
+                        <div class="space-y-4">
+                            ${Object.entries(response.data.schedule).map(([time, details]) => `
+                                <div class="border-l-4 border-blue-500 pl-4 py-2">
+                                    <h3 class="font-semibold">${time}</h3>
+                                    <p class="text-gray-600">${details}</p>
+                                </div>
+                            `).join('')}
+                        </div>
+                    `;
+                    
+                    document.getElementById('visitPlan').innerHTML = visitPlanHtml;
+                } else {
+                    throw new Error('Invalid response format');
+                }
+            } catch (error) {
+                console.error('Error generating plan:', error);
+                document.getElementById('visitPlan').innerHTML = `
+                    <div class="text-red-500">
+                        Error generating plan. Please try again later.
+                    </div>
+                `;
+            }
+        }
+
+        // Generate daily report
+        async function generateReport() {
+            try {
+                const today = new Date().toISOString().split('T')[0];
+                const response = await axios.get(`/api/daily-report?date=${today}`);
+                
+                if (response.data.status === 'success') {
+                    // Update activities
+                    document.getElementById('todayActivities').innerHTML = response.data.activities
+                        .map(activity => `<p class="mt-2">${activity}</p>`)
+                        .join('');
+                    
+                    // Update achievements
+                    document.getElementById('achievements').innerHTML = response.data.achievements
+                        .map(achievement => `<p class="mt-2">${achievement}</p>`)
+                        .join('');
+                    
+                    // Update follow-ups
+                    document.getElementById('pendingFollowups').innerHTML = response.data.followUps
+                        .map(followUp => `<p class="mt-2">${followUp}</p>`)
+                        .join('');
+                } else {
+                    throw new Error('Invalid response format');
+                }
+            } catch (error) {
+                console.error('Error generating report:', error);
+                const errorMessage = `
+                    <div class="text-red-500">
+                        Error generating report. Please try again later.
+                    </div>
+                `;
+                document.getElementById('todayActivities').innerHTML = errorMessage;
+                document.getElementById('achievements').innerHTML = errorMessage;
+                document.getElementById('pendingFollowups').innerHTML = errorMessage;
+            }
+        }
+
+        // Handle visit form submission
+        document.getElementById('visitForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const visitData = {
+                clientName: document.getElementById('clientName').value,
+                visitDate: new Date().toISOString().split('T')[0],
+                location: document.getElementById('location').value,
+                productsDiscussed: document.getElementById('productsDiscussed').value,
+                meetingOutcome: document.getElementById('meetingOutcome').value,
+                orderDetails: document.getElementById('orderDetails').value || null,
+                nextSteps: document.getElementById('nextSteps').value,
+                marketIntel: document.getElementById('marketIntel').value || null,
+                remarks: document.getElementById('remarks').value || null
+            };
+
+            try {
+                const response = await axios.post('/api/sales-report', visitData);
+                if (response.data.status === 'success') {
+                    alert('Visit details saved successfully!');
+                    e.target.reset();
+                } else {
+                    throw new Error(response.data.message || 'Error saving visit details');
+                }
+            } catch (error) {
+                console.error('Error saving visit:', error);
+                alert('Error saving visit details: ' + (error.response?.data?.message || error.message));
+            }
+        });
+
+        // Generate insights
+        async function generateInsights() {
+            try {
+                const startDate = document.getElementById('startDate').value;
+                const endDate = document.getElementById('endDate').value;
+                
+                if (!startDate || !endDate) {
+                    alert('Please select both start and end dates');
+                    return;
+                }
+
+                const response = await axios.post('/api/performance', {
+                    salesPersonId: 'SP001',
+                    startDate,
+                    endDate
+                });
+
+                if (response.data.status === 'success') {
+                    // Extract insights and period from the response
+                    const insights = response.data.insights;
+                    const period = response.data.period;
+
+                    // Generate HTML for the insights
+                    const insightsHtml = `
+                        <div class="space-y-6">
+                            <!-- Period Section -->
+                            <div class="border-l-4 border-blue-500 pl-4 py-2">
+                                <h3 class="font-semibold text-lg mb-2">Analysis Period</h3>
+                                <p class="text-gray-700">${period}</p>
+                            </div>
+
+                            <!-- Insights -->
+                            <div class="border-l-4 border-green-500 pl-4 py-2">
+                                <h3 class="font-semibold text-lg mb-2">Sales Insights</h3>
+                                <div class="space-y-3">
+                                    <p class="text-gray-700 whitespace-pre-line">${insights}</p>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+
+                    // Update the insights content
+                    document.getElementById('insightsContent').innerHTML = insightsHtml;
+                } else {
+                    throw new Error('Invalid response format');
+                }
+            } catch (error) {
+                console.error('Error generating insights:', error);
+                document.getElementById('insightsContent').innerHTML = `
+                    <div class="text-red-500 p-4 border border-red-200 rounded">
+                        <p class="font-semibold">Error generating insights</p>
+                        <p class="mt-1">${error.message || 'Please try again later.'}</p>
+                    </div>
+                `;
+            }
+        }
+
+
+        // Function to format the date (helper function)
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+        }
+
+
+        // Chat functionality
+        document.getElementById('chatForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const input = document.getElementById('chatInput');
+            const message = input.value.trim();
+            
+            if (!message) return;
+
+            // Add user message to chat
+            addMessageToChat(message, 'user');
+            input.value = '';
+
+            try {
+                // Send message to backend
+                const response = await axios.post('/api/chat', { 
+                    message,
+                    context: {
+                        salesPersonId: 'SP001',
+                        date: new Date().toISOString().split('T')[0]
+                    }
+                });
+                
+                if (response.data.status === 'success') {
+                    // Add text response to chat
+                    addMessageToChat(response.data.response, 'assistant');
+                    
+                    // If there are any visualizations or structured data
+                    if (response.data.visualizations) {
+                        addVisualizationToChat(response.data.visualizations);
+                    }
+                } else {
+                    throw new Error(response.data.message || 'Error processing message');
+                }
+            } catch (error) {
+                console.error('Error sending message:', error);
+                addMessageToChat('Sorry, there was an error processing your request. Please try again.', 'assistant');
+            }
+        });
+
+        function addMessageToChat(message, sender) {
+            const chatMessages = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'flex flex-col space-y-2';
+            
+            const messageBubble = document.createElement('div');
+            messageBubble.className = sender === 'user' 
+                ? 'bg-blue-100 p-3 rounded-lg max-w-[80%] self-end'
+                : 'bg-gray-100 p-3 rounded-lg max-w-[80%] self-start';
+            
+            messageBubble.innerHTML = `<p class="text-gray-800">${message}</p>`;
+            messageDiv.appendChild(messageBubble);
+            chatMessages.appendChild(messageDiv);
+            
+            // Scroll to bottom
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function addVisualizationToChat(visualizationData) {
+            const chatMessages = document.getElementById('chatMessages');
+            const visualizationDiv = document.createElement('div');
+            visualizationDiv.className = 'flex flex-col space-y-2';
+            
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'bg-white p-4 rounded-lg max-w-[90%] self-start border';
+            
+            // Handle different types of visualizations
+            if (visualizationData.type === 'table') {
+                contentDiv.innerHTML = createTableHTML(visualizationData.data);
+            } else if (visualizationData.type === 'metrics') {
+                contentDiv.innerHTML = createMetricsHTML(visualizationData.data);
+            } else if (visualizationData.type === 'list') {
+                contentDiv.innerHTML = createListHTML(visualizationData.data);
+            }
+            
+            visualizationDiv.appendChild(contentDiv);
+            chatMessages.appendChild(visualizationDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function createTableHTML(data) {
+            if (!data || !data.length) return '<p>No data available</p>';
+            
+            return `
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                ${Object.keys(data[0]).map(key => 
+                                    `<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        ${key}
+                                    </th>`
+                                ).join('')}
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            ${data.map(row => `
+                                <tr>
+                                    ${Object.values(row).map(value => 
+                                        `<td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                            ${value}
+                                        </td>`
+                                    ).join('')}
+                                </tr>`
+                            ).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+        }
+
+        function createMetricsHTML(data) {
+            if (!data || Object.keys(data).length === 0) return '<p>No metrics available</p>';
+            
+            return `
+                <div class="grid grid-cols-2 gap-4">
+                    ${Object.entries(data).map(([key, value]) => `
+                        <div class="border rounded p-4">
+                            <div class="text-sm text-gray-500">${key}</div>
+                            <div class="text-lg font-semibold">${value}</div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        function createListHTML(data) {
+            if (!data || !data.length) return '<p>No items available</p>';
+            
+            return `
+                <ul class="space-y-2">
+                    ${data.map(item => `
+                        <li class="flex items-center">
+                            <span class="w-2 h-2 bg-blue-500 rounded-full mr-2"></span>
+                            ${item}
+                        </li>
+                    `).join('')}
+                </ul>
+            `;
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sales Team Daily Report</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.6.2/axios.min.js"></script>
+</head>
+<body class="bg-gray-100">
+    <div class="container mx-auto px-4 py-8">
+        <!-- Header -->
+        <header class="mb-8">
+            <h1 class="text-3xl font-bold text-gray-800">Sales Team Daily Report</h1>
+            <p class="text-gray-600" id="currentDate"></p>
+        </header>
+
+        <!-- Main Tabs -->
+        <div class="mb-6">
+            <div class="border-b border-gray-200">
+                <nav class="-mb-px flex">
+                    <button onclick="showTab('daily-plan')" class="tab-btn px-4 py-2 text-sm font-medium text-blue-600 border-b-2 border-blue-500">Daily Plan</button>
+                    <button onclick="showTab('client-visit')" class="tab-btn px-4 py-2 text-sm font-medium text-gray-500">Client Visit</button>
+                    <button onclick="showTab('daily-report')" class="tab-btn px-4 py-2 text-sm font-medium text-gray-500">Daily Report</button>
+                    <button onclick="showTab('insights')" class="tab-btn px-4 py-2 text-sm font-medium text-gray-500">Insights</button>
+                </nav>
+            </div>
+        </div>
+
+        <!-- Tab Contents -->
+        <div id="tab-contents">
+            <!-- Daily Plan Tab -->
+            <div id="daily-plan" class="tab-content">
+                <div class="bg-white shadow rounded-lg p-6">
+                    <h2 class="text-xl font-semibold mb-4">Today's Visit Plan</h2>
+                    <div id="visitPlan" class="space-y-4">
+                        <!-- Visit plan will be populated here -->
+                    </div>
+                    <button onclick="generatePlan()" class="mt-4 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+                        Generate Plan
+                    </button>
+                </div>
+            </div>
+
+            <!-- Client Visit Tab -->
+            <div id="client-visit" class="tab-content hidden">
+                <div class="bg-white shadow rounded-lg p-6">
+                    <h2 class="text-xl font-semibold mb-4">Client Visit Details</h2>
+                    <form id="visitForm" class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Client Name</label>
+                            <input type="text" id="clientName" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Location</label>
+                            <input type="text" id="location" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Products Discussed</label>
+                            <input type="text" id="productsDiscussed" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Meeting Outcome</label>
+                            <textarea id="meetingOutcome" rows="4" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border"></textarea>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Order Details (Optional)</label>
+                            <textarea id="orderDetails" rows="4" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border"></textarea>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Next Steps</label>
+                            <input type="text" id="nextSteps" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Market Intelligence (Optional)</label>
+                            <textarea id="marketIntel" rows="4" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border"></textarea>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Additional Remarks (Optional)</label>
+                            <textarea id="remarks" rows="4" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border"></textarea>
+                        </div>
+                        <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+                            Save Visit Details
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Insights Tab -->
+            <div id="insights" class="tab-content hidden">
+                <div class="bg-white shadow rounded-lg p-6">
+                    <h2 class="text-xl font-semibold mb-4">Performance Insights</h2>
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700">Date Range</label>
+                        <div class="flex space-x-4 mt-2">
+                            <input type="date" id="startDate" class="rounded-md border-gray-300 shadow-sm p-2 border">
+                            <input type="date" id="endDate" class="rounded-md border-gray-300 shadow-sm p-2 border">
+                        </div>
+                    </div>
+                    <div id="insightsContent" class="space-y-4">
+                        <!-- Insights will be populated here -->
+                    </div>
+                    <button onclick="generateInsights()" class="mt-4 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+                        Generate Insights
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Set current date
+        document.getElementById('currentDate').textContent = new Date().toLocaleDateString();
+
+        // Tab switching
+        function showTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.add('hidden'));
+            document.getElementById(tabId).classList.remove('hidden');
+            
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('text-blue-600', 'border-blue-500');
+                btn.classList.add('text-gray-500');
+            });
+            event.target.classList.add('text-blue-600', 'border-blue-500');
+            event.target.classList.remove('text-gray-500');
+        }
+
+        // Generate visit plan
+        async function generatePlan() {
+            try {
+                const today = new Date().toISOString().split('T')[0];
+                const response = await axios.get(`/api/schedule/SP001?date=${today}`);
+                
+                // Assuming the schedule is returned in a structured format
+                const schedule = response.data.schedule;
+                document.getElementById('visitPlan').innerHTML = schedule;
+            } catch (error) {
+                console.error('Error generating plan:', error);
+                alert('Error generating plan. Please try again.');
+            }
+        }
+
+        // Save visit details
+        document.getElementById('visitForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const visitData = {
+                clientName: document.getElementById('clientName').value,
+                visitDate: new Date().toISOString().split('T')[0],
+                location: document.getElementById('location').value,
+                productsDiscussed: document.getElementById('productsDiscussed').value,
+                meetingOutcome: document.getElementById('meetingOutcome').value,
+                orderDetails: document.getElementById('orderDetails').value || null,
+                nextSteps: document.getElementById('nextSteps').value,
+                marketIntel: document.getElementById('marketIntel').value || null,
+                remarks: document.getElementById('remarks').value || null
+            };
+
+            try {
+                const response = await axios.post('/api/sales-report', visitData);
+                if (response.data.status === 'success') {
+                    alert('Visit details saved successfully!');
+                    e.target.reset();
+                } else {
+                    throw new Error(response.data.message || 'Error saving visit details');
+                }
+            } catch (error) {
+                console.error('Error saving visit:', error);
+                alert('Error saving visit details: ' + (error.response?.data?.message || error.message));
+            }
+        });
+        
+        document.getElementById('chatForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const input = document.getElementById('chatInput');
+            const message = input.value.trim();
+            
+            if (!message) return;
+
+            // Add user message to chat
+            addMessageToChat(message, 'user');
+            input.value = '';
+
+            try {
+                // Send message to backend
+                const response = await axios.post('/api/chat', { message });
+                
+                // Add response to chat
+                addMessageToChat(response.data.response, 'assistant');
+            } catch (error) {
+                console.error('Error sending message:', error);
+                addMessageToChat('Sorry, there was an error processing your request.', 'assistant');
+            }
+        });
+
+        function addMessageToChat(message, sender) {
+            const chatMessages = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'flex flex-col space-y-2';
+            
+            const messageBubble = document.createElement('div');
+            messageBubble.className = sender === 'user' 
+                ? 'bg-blue-100 p-3 rounded-lg max-w-[80%] self-end'
+                : 'bg-gray-100 p-3 rounded-lg max-w-[80%] self-start';
+            
+            messageBubble.innerHTML = `<p class="text-gray-800">${message}</p>`;
+            messageDiv.appendChild(messageBubble);
+            chatMessages.appendChild(messageDiv);
+            
+            // Scroll to bottom
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+
+        // Generate insights
+        async function generateInsights() {
+            try {
+                const startDate = document.getElementById('startDate').value;
+                const endDate = document.getElementById('endDate').value;
+                
+                if (!startDate || !endDate) {
+                    alert('Please select both start and end dates');
+                    return;
+                }
+
+                const response = await axios.post('/api/performance', {
+                    salesPersonId: 'SP001',
+                    startDate,
+                    endDate
+                });
+
+                if (response.data.status === 'success') {
+                    document.getElementById('insightsContent').innerHTML = `
+                        <div class="space-y-4">
+                            <div class="border-l-4 border-green-500 pl-4 py-2">
+                                <h3 class="font-semibold">Performance Insights</h3>
+                                <p class="whitespace-pre-line">${response.data.insights}</p>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    throw new Error(response.data.message || 'Error generating insights');
+                }
+            } catch (error) {
+                console.error('Error generating insights:', error);
+                alert('Error generating insights: ' + (error.response?.data?.message || error.message));
+            }
+        }
+    </script>
+</body>
+</html>

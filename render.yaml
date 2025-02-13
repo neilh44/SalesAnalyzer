@@ -1,0 +1,39 @@
+services:
+  # Web service configuration
+  - type: web
+    name: sales-assistant-api
+    env: python
+    region: oregon  # or your preferred region
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.9.0
+      - key: GROQ_API_KEY
+        sync: false  # This will be set manually in Render dashboard
+      - key: FLASK_ENV
+        value: production
+      - key: FLASK_APP
+        value: app.py
+    healthCheckPath: /
+    autoDeploy: true
+    
+    # Disk configuration for logs and persistent storage
+    disk:
+      name: sales-app-data
+      mountPath: /data
+      sizeGB: 10
+    
+    # Resource allocation
+    instanceType: basic  # Adjust based on your needs
+    numInstances: 1
+    
+    # Build settings
+    buildFilter:
+      paths:
+        - app.py
+        - requirements.txt
+        - sales_rag.py
+        - sales_automation.py
+        - templates/**
+        - static/**
