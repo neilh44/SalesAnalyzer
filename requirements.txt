@@ -7,3 +7,4 @@ uvicorn
 langchain
 langchain-community
 python-dotenv
+gunicorn
